@@ -35,7 +35,7 @@ app.add_middleware(
 #一个细节：在服务启动时（server.py运行时）加载模型，而不是在每次请求时加载。这样可以避免重复的磁盘 I/O 和 GPU/CPU 内存分配
 print("[Server] Initializing Global Model...") #在控制台打印日志，表明模型正在加载
 try:
-    GLOBAL_PREDICTOR=CancerSubtypePredictor(cancer_type='BRCA',model_epoch=60) #使用我们在inference.py里定义的类创建一个全局对象。这里我们使用的是第60轮的BRCA模型
+    GLOBAL_PREDICTOR=CancerSubtypePredictor(cancer_type='BRCA',model_epoch=600) #使用我们在inference.py里定义的类创建一个全局对象。这里我们使用的是第600轮的BRCA模型【【【【【600轮？这里记得改一下
     print("[Server] Model loaded successfully!")
 except Exception:
     GLOBAL_PREDICTOR=None
