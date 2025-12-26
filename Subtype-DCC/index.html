@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>癌症亚型预测系统</title>
+    <style>
+        /* 简单的 CSS 样式，用于美化页面 */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+        .container { border: 1px solid #ddd; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        .result-box { margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-left: 5px solid #007bff; display: none; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Subtype-DCC 癌症亚型预测</h2>
+    <p>请上传包含患者多组学数据的 CSV 文件 (共 9844 列特征)</p>
+    
+    <input type="file" id="csvFile" accept=".csv" />
+    <br><br>
+    <button onclick="uploadAndPredict()">开始预测</button>
+
+    <div id="resultArea" class="result-box">
+        <h3>预测结果：</h3>
+        <p id="outputJson">等待上传...</p>
+    </div>
+</div>
+
+<script>
+    // 定义异步函数，处理点击事件
+    async function uploadAndPredict() {
+        const fileInput = document.getElementById('csvFile');
+        const resultArea = document.getElementById('resultArea');
+        const outputText = document.getElementById('outputJson');
+
+        // 校验是否选择了文件
+        if (fileInput.files.length === 0) {
+            alert("请先选择一个 CSV 文件！");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        
+        // 1. 构建 FormData 对象
+        // FormData 是浏览器提供的 API，用于构建 key/value 键值对，专门用于模拟表单提交，支持二进制文件传输
+        const formData = new FormData();
+        formData.append("file", file); // 将文件对象添加到表单中，key 为 "file"
+
+        try {
+            outputText.innerText = "正在分析中...";
+            resultArea.style.display = "block";
+
+            // 2. 发送 fetch 请求
+            // fetch 是浏览器原生的网络请求 API
+            const response = await fetch('http://127.0.0.1:8000/predict_file', {
+                method: 'POST',
+                body: formData // 直接将 formData 作为请求体发送，浏览器会自动设置 Content-Type 为 multipart/form-data
+            });
+
+            // 3. 解析响应
+            if (!response.ok) {
+                throw new Error(`HTTP 错误! 状态码: ${response.status}`);
+            }
+
+            const data = await response.json(); // 将响应体解析为 JSON 对象
+            
+            // 4. 显示结果
+            outputText.innerText = JSON.stringify(data, null, 4); // 格式化显示 JSON
+        } catch (error) {
+            outputText.innerText = "预测失败: " + error.message;
+            console.error('Error:', error);
+        }
+    }
+</script>
+
+</body>
+</html>
