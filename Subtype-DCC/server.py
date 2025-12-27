@@ -55,14 +55,13 @@ def predict_subtype(record: PatientRecord): #FastAPI 会自动读取 HTTP 请求
             np.array(record.rna_features)
         ]
 
-        result_subtype=GLOBAL_PREDICTOR.predict(input_packet) #调用GLOBAL_PREDICTOR对象的predict方法，于是就得到模型推理结果了
+        result_subtype=GLOBAL_PREDICTOR.predict(input_packet) #把input_packet传入模型，开始预测
+        if result_subtype==-1:
+            raise HTTPException(status_code=400, detail="Preprocessing failed. Please verify input data dimensions.") #返回 400 Bad Request 错误，告诉客户端“预处理失败。请确认输入数据的尺寸。”
 
-        if result_subtype==-1: #如果predict为-1，说明预处理失败
-            raise HTTPException(status_code=400, detail="Data Preprocessing Failed. Check input dimensions.") #返回 400 Bad Request 错误，告诉客户端“你发的数据格式不对，我处理不了”
-
-        # 函数直接返回一个 Python 字典
-        # FastAPI 框架会自动将这个字典序列化成 JSON 字符串，并通过网络发送给客户端。
-        # 客户端收到的就是形如 {"status": "success", ...} 的 JSON 数据。
+        #函数直接返回一个Python字典
+        #FastAPI框架会自动将这个字典序列化成JSON字符串，并通过网络发送给客户端
+        #客户端收到的就是形如{"status": "success", ...}的JSON数据
         return {
             "status": "success",
             "model_version": "BRCA_v1",
@@ -73,72 +72,38 @@ def predict_subtype(record: PatientRecord): #FastAPI 会自动读取 HTTP 请求
         }
 
     except Exception: #防止代码中出现未预料的错误导致服务器崩溃
-        raise HTTPException(status_code=500, detail=str(Exception)) #将错误信息转为字符串并封装在 500 错误中返回，方便调试
+        raise HTTPException(status_code=500, detail=str(Exception)) #将错误信息转为字符串并封装在500错误中返回，方便调试
 
 @app.post("/predict_file") #该接口作用：接收CSV文件，自动解析并调用模型
-async def predict_file(file: UploadFile = File(...)): #使用UploadFil类型接收文件流
+async def predict_file(file: UploadFile = File(...)): #使用UploadFile类型接收文件流【【【【【UploadFile类型是什么？
     if GLOBAL_PREDICTOR is None:
         raise HTTPException(status_code=503, detail="Model service unavailable")
-    #检查文件扩展名是不是.csv就不用了
+    #检查文件扩展名是不是.csv这一步就算了，不写了
 
     try:
-        # 1. 读取文件内容
-        contents = await file.read() #await file.read()意思是异步读取上传文件的全部二进制内容
+        contents=await file.read() #await file.read()意思是异步读取上传文件的全部二进制内容
+        df=pd.read_csv(io.StringIO(contents.decode('utf-8')), header=None) #将二进制内容解码为字符串，然后io.StringIO把这个字符串包装成类似文件的对象，让pandas以为它在读一个本地文件，方便pd.read_csv读取。返回值为DataFrame类型
+        # header=None：告诉pandas该CSV文件没有表头。因此，文件的第一行会被直接当作数据读取，而不是被当作列名
+        #检查一下df的列数是不是9844（ CN:3105 + Meth:3139 + miRNA:383 + RNA:3217 = 9844 ）
+        if df.shape[1]!=9844:
+            raise HTTPException(status_code=400, detail=f"Dimension Error: Expected 9844 columns, but got {df.shape[1]}.")
 
-        # 2. 将二进制内容转换为字符串，并使用 pandas 读取 CSV
-        # io.StringIO 将字符串包装成类似文件的对象，以便 pd.read_csv 读取
-        # header=None 假设 CSV 没有表头，只有一行数据。如果用户上传的有表头，这里需要调整
-        # --- 2. 解析 CSV ---
-        # io.BytesIO(contents): 将二进制数据包装成内存中的文件流对象，让 pandas 以为它在读一个本地文件
-        # header=None: 假设 CSV 没有表头，直接读数据。如果有表头请改为 header=0
-        df = pd.read_csv(io.StringIO(contents.decode('utf-8')), header=None)
+        full_features=df.iloc[0].values #df.iloc[0]提取第一行，然后.values把它转换成numpy数组
+        #将full_features拆分为4个组学特征向量（CN:3105，Meth:3139，miRNA:383，RNA:3217）
+        cn_features=full_features[ 0 : 3105 ]
+        meth_features=full_features[ 3105 : 3105+3139 ]
+        mirna_features=full_features[ 3105+3139 : 3105+3139+383 ]
+        rna_features=full_features[ 3105+3139+383 :  ]
+        #把这4个组学特征向量用列表包装起来
+        input_packet=[cn_features,meth_features,mirna_features,rna_features]
 
-        # 3. 检查数据维度
-        # 根据 dataloader.py 和 inference.py，模型输入的总特征数为 9844
-        # 具体组成: CN(3105) + Meth(3139) + miRNA(383) + mRNA(3217) = 9844
-        if df.shape[1] != 9844:
-            raise HTTPException(status_code=400, 
-                                detail=f"Dimension Error: Expected 9844 columns, but got {df.shape[1]}.")
+        result_subtype=GLOBAL_PREDICTOR.predict(input_packet) #把input_packet传入模型，开始预测
+        if result_subtype==-1:
+            raise HTTPException(status_code=400, detail="Preprocessing failed. Please verify input data dimensions.") #返回 400 Bad Request 错误，告诉客户端“预处理失败。请确认输入数据的尺寸。”
 
-        # 4. 提取第一行数据并转换为 numpy 数组
-        # .iloc[0] 获取第一行，.values 获取其数值数组
-        # 取第一行数据作为当前病人的特征 (假设用户只传了一个病人的数据)
-        # .values 属性将 pandas Series 转换为 numpy 数组
-        full_features = df.iloc[0].values 
-
-        # # 简单校验维度 (BRCA 数据集总共有 9844 个特征)
-        # total_dims = 9844
-        # if len(patient_data) != total_dims:
-        #     raise HTTPException(status_code=400, detail=f"Expected {total_dims} features, but got {len(patient_data)}")
-
-
-# --- 3. 数据切片 (Data Slicing) ---
-        # 根据 inference.py 中的维度定义，将长向量切分为 4 个组学特征向量
-        # CN: 3105, Meth: 3139, miRNA: 383, RNA: 3217
-        # 5. 切分数据 (Data Slicing)
-        # 按照 dataloader.py 中 concatenate 的顺序进行逆向切分
-        # 必须严格遵守该顺序，否则特征含义错位会导致预测完全错误
-        
-        idx1 = 3105
-        idx2 = idx1 + 3139
-        idx3 = idx2 + 383
-        cn_features = full_features[0:idx1]
-        meth_features = full_features[idx1:idx2]
-        mirna_features = full_features[idx2:idx3]
-        rna_features = full_features[idx3:]
-
-# 组装输入包
-        # 6. 构造 input_packet
-        # 这是一个列表，符合 inference.py 中 predict 方法的输入要求
-        input_packet = [cn_features, meth_features, mirna_features, rna_features]
-
-        # 7. 调用模型预测
-        result_subtype = GLOBAL_PREDICTOR.predict(input_packet)
-
-        if result_subtype == -1:
-            raise HTTPException(status_code=400, detail="Prediction failed during preprocessing.")
-
-        # 8. 返回结果 (与 /predict 接口保持一致)
+        #函数直接返回一个Python字典
+        #FastAPI框架会自动将这个字典序列化成JSON字符串，并通过网络发送给客户端
+        #客户端收到的就是形如{"status": "success", ...}的JSON数据
         return {
             "status": "success",
             "model_version": "BRCA_v1",
@@ -148,10 +113,8 @@ async def predict_file(file: UploadFile = File(...)): #使用UploadFil类型接�
             }
         }
 
-    except Exception as e:
-        # 捕获我们自己抛出的 HTTP 异常、 Pandas 解析错误或其他未知错误
-        raise HTTPException(status_code=500, detail=f"Processing Error: {str(e)}")
-# ===
+    except Exception: #防止代码中出现未预料的错误导致服务器崩溃
+        raise HTTPException(status_code=500, detail=str(Exception)) #将错误信息转为字符串并封装在500错误中返回，方便调试
 
 if __name__ == "__main__": #这是 Python 的标准入口判断。只有当这个文件被直接运行（而不是作为模块被导入）时，下面的代码才会执行
     #启动 Uvicorn 服务器

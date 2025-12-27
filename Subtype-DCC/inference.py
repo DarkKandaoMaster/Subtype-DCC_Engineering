@@ -128,15 +128,14 @@ class CancerSubtypePredictor:
         """
 
         #我们刚才不是自定义了一个preprocess方法嘛，现在我们来调用它
-        tensor_data = self.preprocess(raw_data_list)
-
-        # 如果预处理失败（返回 None），则直接返回错误代码 -1
+        tensor_data=self.preprocess(raw_data_list)
+        # 如果预处理失败（返回None），则直接返回-1
         if tensor_data is None:
             return -1
 
         #关闭梯度计算
         with torch.no_grad():
-            c, h = self.model.forward_cluster(tensor_data) #调用 Network 类的 forward_cluster 方法，也就是那个只在推理时使用的前向传播逻辑 #这个forward_cluster是论文代码里原有的函数
+            c, h=self.model.forward_cluster(tensor_data) #调用 Network 类的 forward_cluster 方法，也就是那个只在推理时使用的前向传播逻辑 #这个forward_cluster是论文代码里原有的函数
 
         # .item() 将单元素 Tensor 转换为 Python 标准数据类型 (int/float)
         # 提取预测结果。
