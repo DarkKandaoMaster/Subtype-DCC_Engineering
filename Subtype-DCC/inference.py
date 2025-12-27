@@ -20,7 +20,6 @@ class CancerSubtypePredictor:
             device (str): 运行设备，默认CPU
         """
         self.device = torch.device(device) #设置device
-        # self.cancer_type = cancer_type #设置cancer_type【【【【【这句好像可以注释掉？
 
         base_path = './save' #定义存储模型和辅助文件的根目录路径，对应代码库中的 ./save 文件夹
         scaler_path = os.path.join(base_path, f'{cancer_type}_scaler.pkl') #构建minmaxscaler对象的完整文件路径
