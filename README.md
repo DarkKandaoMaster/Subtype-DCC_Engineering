@@ -10,15 +10,17 @@
 
 
 ## 如何下载代码并使用
-1. 配置环境步骤略，有报错就浏览器搜索，或者问AI，然后安装对应环境就行了  
-2. 下载测试集训练集数据【【【【【这里记得补充说几句  
-3. 打开命令提示符（cmd），cd到Subtype-DCC这个文件夹  
-4. 激活你配置好的那个虚拟环境（如果你刚才配置的是虚拟环境的话）（比如我就是`conda activate myenv`）  
-5. 输入`python train.py`，等待运行完毕。于是成功生成模型、minmaxscaler对象  
-6. 输入`python server.py`，不要关闭这个命令提示符窗口，于是就可以双击index.html，上传test_patient.csv，得到结果；也可以运行test_request.py，得到结果  
-
-https://github.com/user-attachments/assets/a312541e-9598-4c5f-bacb-3a2087be783f
+1. 下载我这个项目的代码  
+2. 配置环境略。有报错就浏览器搜索，或者问AI，然后安装对应环境就行了  
+3. 下载 https://github.com/haiyang1986/Subtype-GAN 这个项目的代码，里面的fea文件夹就是训练模型时要用到的训练数据  
+4. 在我这个项目的根目录，新建一个名称为subtype_file的文件夹，把fea文件夹复制进去  
+5. 打开命令提示符（cmd），cd到Subtype-DCC这个文件夹  
+6. 激活你配置好的那个虚拟环境（如果你刚才配置的是虚拟环境的话）（比如我就是`conda activate myenv`）  
+7. 输入`python train.py`，等待运行完毕。于是成功生成模型、minmaxscaler对象  
+8. 输入`python server.py`，不要关闭这个命令提示符窗口，于是就可以双击index.html，上传test_patient.csv，得到结果；也可以运行test_request.py，得到结果  
 
 ## 常见问题
-- index.html会报2个错，这是正常的。它俩一个是【【【【【
-- test_patient.csv这里面的数据是我随机生成的，如果想测试其他数据的话可以写个代码把训练集里的数据提取一份出来。注意训练集里的数据是一列一列的，但是server.py期望的csv文件是一行一行的
+- index.html会报2个红色警告，这是正常的。它俩一个警告不改一下网页在手机上会很难用，一个警告不改一下对视障用户不友好  
+- test_patient.csv这里面的数据是我随机生成的，如果想测试其他数据的话可以写个代码把训练集里的数据提取一份出来。注意训练集里的数据是一列一列的，但是server.py期望的csv文件是一行一行的  
+
+https://github.com/user-attachments/assets/a312541e-9598-4c5f-bacb-3a2087be783f  

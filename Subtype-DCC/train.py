@@ -138,7 +138,7 @@ if __name__ == "__main__":
     draw_fig(loss,args.cancer_type,epoch) #绘制损失曲线图并保存
 
     #推断阶段
-    dataloader=get_feature(args.cancer_type,args.batch_size,False) #调用"Subtype-DCC\dataloader.py"里自定义的get_feature函数，重新获取数据加载器，这次是 False（不打乱数据），用于按顺序生成特征和预测
+    dataloader=get_feature(args.cancer_type,args.batch_size,False) #调用"Subtype-DCC\dataloader.py"里自定义的get_feature函数，重新获取数据加载器，这次是 False（不打乱数据）。所以本项目训练数据测试数据用的是同一份
     model = network.Network(ae, args.feature_dim, cluster_number) #使用"Subtype-DCC\modules\network.py"里自定义的Network类，重新加载模型架构，重新初始化一个和保存时结构一致的模型结构
     model_fp = os.path.join(model_path, "checkpoint_{}.tar".format(args.epochs)) #定义模型权重文件的路径
     model.load_state_dict(torch.load(model_fp, map_location=device.type)['net']) #加载保存的权重文件，map_location 确保加载到正确的设备，['net'] 提取模型部分的参数
