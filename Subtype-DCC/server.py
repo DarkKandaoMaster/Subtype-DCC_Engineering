@@ -35,7 +35,7 @@ app.add_middleware(
 #一个细节：在服务启动时（server.py运行时）加载模型，而不是在每次请求时加载。这样可以避免重复的磁盘 I/O 和 GPU/CPU 内存分配
 print("[Server] Initializing Global Model...") #在控制台打印日志，表明模型正在加载
 try:
-    GLOBAL_PREDICTOR=CancerSubtypePredictor(cancer_type='BRCA',model_epoch=600) #使用我们在inference.py里定义的类创建一个全局对象。这里我们使用的是第600轮的BRCA模型【【【【【600轮？这里记得改一下
+    GLOBAL_PREDICTOR=CancerSubtypePredictor(cancer_type='BRCA',model_epoch=600) #使用我们在inference.py里定义的类创建一个全局对象。这里我们使用的是第600轮的BRCA模型。如果希望加载训练60轮之后的模型，那么就把这里改成60
     print("[Server] Model loaded successfully!")
 except Exception:
     GLOBAL_PREDICTOR=None
@@ -75,7 +75,7 @@ def predict_subtype(record: PatientRecord): #FastAPI 会自动读取 HTTP 请求
         raise HTTPException(status_code=500, detail=str(Exception)) #将错误信息转为字符串并封装在500错误中返回，方便调试
 
 @app.post("/predict_file") #该接口作用：接收CSV文件，自动解析并调用模型
-async def predict_file(file: UploadFile = File(...)): #使用UploadFile类型接收文件流【【【【【UploadFile类型是什么？
+async def predict_file(file: UploadFile = File(...)): #使用UploadFile类型接收文件流。UploadFile是FastAPI框架提供的一个专门用于处理文件上传的类，它针对网络上传进行了优化（支持异步I/O和自动磁盘缓存），是生产环境中处理文件上传的标准做法
     if GLOBAL_PREDICTOR is None:
         raise HTTPException(status_code=503, detail="Model service unavailable")
     #检查文件扩展名是不是.csv这一步就算了，不写了

@@ -20,7 +20,7 @@ def block(in_c,out_c):
 
 
 
-# 编码器类 (Encoder)，用于将高维度的输入数据压缩为低维度的潜在表示 (Latent Representation)。
+# 编码器类 (Encoder)，用于将高维度的输入数据压缩为低维度的潜在表示
 # 对应论文中提到的用于特征提取的深度神经网络。
 class Encoder(nn.Module):
     def __init__(self,input_dim=9844,inter_dims=[5000,2000,1000,256]): #初始化编码器结构。

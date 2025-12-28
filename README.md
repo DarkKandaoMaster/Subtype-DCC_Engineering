@@ -14,7 +14,11 @@
 2. 下载测试集训练集数据【【【【【这里记得补充说几句  
 3. 打开命令提示符（cmd），cd到Subtype-DCC这个文件夹  
 4. 激活你配置好的那个虚拟环境（如果你刚才配置的是虚拟环境的话）（比如我就是`conda activate myenv`）  
-5. 首先生成模型、minmaxscaler对象：输入`python train.py`，等待运行完毕  
+5. 输入`python train.py`，等待运行完毕。于是成功生成模型、minmaxscaler对象  
 6. 输入`python server.py`，不要关闭这个命令提示符窗口，于是就可以双击index.html，上传test_patient.csv，得到结果；也可以运行test_request.py，得到结果  
 
 https://github.com/user-attachments/assets/a312541e-9598-4c5f-bacb-3a2087be783f
+
+## 常见问题
+- index.html会报2个错，这是正常的。它俩一个是【【【【【
+- test_patient.csv这里面的数据是我随机生成的，如果想测试其他数据的话可以写个代码把训练集里的数据提取一份出来。注意训练集里的数据是一列一列的，但是server.py期望的csv文件是一行一行的
