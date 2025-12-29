@@ -19,8 +19,11 @@
 7. 输入`python train.py`，等待运行完毕。于是成功生成模型、minmaxscaler对象  
 8. 输入`python server.py`，不要关闭这个命令提示符窗口，于是就可以双击index.html，上传test_patient.csv，得到结果；也可以运行test_request.py，得到结果  
 
+
 ## 常见问题
-- index.html会报2个红色警告，这是正常的。它俩一个警告不改一下网页在手机上会很难用，一个警告不改一下对视障用户不友好  
+- index.html会报2个红色警告，这是正常的。它俩一个警告网页在手机上会很难用，一个警告对视障用户不友好  
 - test_patient.csv这里面的数据是我随机生成的，如果想测试其他数据的话可以写个代码把训练集里的数据提取一份出来。注意训练集里的数据是一列一列的，但是server.py期望的csv文件是一行一行的  
+- 有不懂就浏览器搜索，或者问AI，或者发议题（issue）问我，我肯定会回复的  
+
 
 https://github.com/user-attachments/assets/a312541e-9598-4c5f-bacb-3a2087be783f  
