@@ -7,6 +7,7 @@
 - 在dataloader.py增加了几句代码，实现：训练模型时，也将minmaxscaler对象序列化到磁盘  
 - 新增inference.py。实现：原代码只能在给定的训练集测试集上运行，现在支持使用保存在本地的模型，对单个病人数据进行预测  
 - 新增server.py。也就是说用FastAPI写了套接口，实现：运行server.py后，既可以双击index.html，上传test_patient.csv，得到结果；也可以运行test_request.py，得到结果  
+- index.html、test_patient.csv、test_request.py也是我新增的。做得比较潦草，能用就行  
 
 
 ## 如何下载代码并使用
