@@ -33,7 +33,7 @@ class CancerSubtypePredictor:
 
         #2. 重建模型架构
         #定义特征维度。这是模型中间层（投影头输出）的向量大小。
-        #[cite_start]论文中指出实例级投影头的输出维度设置为 128 [cite: 798]
+        #论文中指出实例级投影头的输出维度设置为 128
         feature_dim = 128
 
         #定义一个字典，映射癌症类型到其对应的亚型（聚类）数量 (K值)。
@@ -44,12 +44,12 @@ class CancerSubtypePredictor:
         cluster_number = cancer_dict.get(cancer_type, 5) #根据输入的 cancer_type 获取对应的聚类数量，如果未找到则默认设为 5
 
         #实例化自编码器对象。
-        #[cite_start]对应论文中的 "Encoder" 部分，它是一个四层深度神经网络，用于从原始高维数据中提取低维特征 [cite: 454, 687]
+        #对应论文中的 "Encoder" 部分，它是一个四层深度神经网络，用于从原始高维数据中提取低维特征
         self.ae_net = ae.AE()
 
         #实例化主网络对象。
         #该类将自编码器与对比学习头整合在一起。
-        #[cite_start]feature_dim 对应实例级特征，cluster_number 对应聚类级输出维度 [cite: 386]
+        #feature_dim 对应实例级特征，cluster_number 对应聚类级输出维度
         self.model = network.Network(self.ae_net, feature_dim, cluster_number)
 
         #3.加载模型
@@ -85,7 +85,7 @@ class CancerSubtypePredictor:
         Args:
             raw_data_list (list): 一个包含四个 NumPy 数组的列表，分别对应四种组学数据：
                                   [Copy Number, DNA Methylation, miRNA, mRNA]。
-                                  [cite_start]这是论文提到的 "Early Integration"（早期融合）策略的体现 [cite: 327, 427]。
+                                  这是论文提到的 "Early Integration"（早期融合）策略的体现。
         Returns:
             torch.Tensor: 预处理完成后的 PyTorch 张量，形状为 (1, 9844)，可以直接送入模型。
                           如果出错则返回 None。
