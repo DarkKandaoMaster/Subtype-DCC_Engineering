@@ -9,26 +9,20 @@ from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import io
 
-class PatientRecord(pydantic.BaseModel): #定义一个类，在这个类里声明四个变量，并且明确指定这四个变量的类型。以此实现确保输入数据符合类型要求（浮点数列表），否则就像C语言那样报错
-    #这里的冒号使用的是 Python 的类型提示语法。 变量名: 类型 意思是声明一个名为 变量名 的变量，它的预期类型是 类型 
-    #虽然在普通 Python 代码中类型提示通常只是像注释一样给人看的，但在 pydantic.BaseModel 中，冒号具有强制性。Pydantic 库会读取冒号后面的类型，并像C语言那样执行强制类型转换和验证
-    cn_features: List[float] #对应 Copy Number Variation (拷贝数变异) 特征向量
-    meth_features: List[float] #对应 DNA Methylation (DNA 甲基化) 特征向量
-    mirna_features: List[float] #对应 miRNA (微小核糖核酸) 表达量特征向量
-    rna_features: List[float] #对应 mRNA (信使核糖核酸) 基因表达量特征向量
-
-#实例化 FastAPI 类，创建一个 Web 应用程序对象
+#实例化FastAPI类，创建一个Web应用程序对象，它是整个后端服务的核心，负责路由分发和请求处理
+# title、description、version参数用于生成自动化的交互式API文档
 app=FastAPI(
-    title="强壮的Cancer Subtype Diagnostic API", #设置 API 文档的标题，方便前端开发者查看
-    description="强壮的Based on Subtype-DCC Deep Learning Model", #设置 API 的描述信息
+    title="强壮的Cancer Subtype Diagnostic API", #设置API文档的标题，方便前端开发者查看
+    description="强壮的Based on Subtype-DCC Deep Learning Model", #设置API的描述信息
     version="1.0.0" #设置版本号，用于接口版本管理
 )
-#配置CORS(跨域资源共享)，允许前端页面访问此API。如果不加这段代码，浏览器会拦截前端对 8000 端口的请求
+
+#配置CORS（跨域资源共享），允许前端页面访问此API。如果不加这段代码，浏览器会拦截前端对8000端口的请求
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], #允许所有来源访问（实际生产中应限制为特定域名）
     allow_credentials=True, #允许携带Cookie等凭证
-    allow_methods=["*"], #允许所有HTTP方法（POST、GET等）
+    allow_methods=["*"], #允许所有HTTP方法（如GET、POST、PUT、DELETE等）
     allow_headers=["*"], #允许所有HTTP请求头
 )
 
@@ -41,7 +35,16 @@ except Exception:
     GLOBAL_PREDICTOR=None
     print(f"[Server] Critical Error: Failed to load model. {Exception}")
 
-#@app.post 是一个装饰器 (Decorator)。它的作用是将下面的 python 函数“注册”到 Web 服务器的路由表中。当用户以 POST 方法访问 "/predict" 这个网址时，服务器会自动调用下面的 predict_subtype 函数来处理请求。
+#定义请求体模型
+class PatientRecord(pydantic.BaseModel): #定义一个类，在这个类里声明四个变量，并且明确指定这四个变量的类型。以此实现确保输入数据类型符合该要求（浮点数列表），否则FastAPI会返回422错误
+    #这里的冒号使用的是Python的类型提示语法。 变量名: 类型 意思是声明一个名为 变量名 的变量，它的预期类型是 类型 
+    #虽然在普通Python代码中类型提示通常只是像注释一样给人看的，但在pydantic.BaseModel中，冒号具有强制性，Pydantic库会读取冒号后面的类型，并像C语言那样执行强制类型转换和验证
+    cn_features: List[float] #对应 Copy Number Variation (拷贝数变异) 特征向量
+    meth_features: List[float] #对应 DNA Methylation (DNA 甲基化) 特征向量
+    mirna_features: List[float] #对应 miRNA (微小核糖核酸) 表达量特征向量
+    rna_features: List[float] #对应 mRNA (信使核糖核酸) 基因表达量特征向量
+
+#@app.post是一个装饰器，它的作用是将下面的predict_subtype函数注册到Web服务器的路由表中，当用户发送 POST 方法到“/predict”这个网址时，服务器会自动调用下面的predict_subtype函数来处理
 @app.post("/predict")
 def predict_subtype(record: PatientRecord): #FastAPI 会自动读取 HTTP 请求体中的 JSON 数据，并将其作为参数传递给 record，实现接收输入数据 #参数record的类型是PatientRecord，就是我们刚才定义的那个类
     if GLOBAL_PREDICTOR is None:
@@ -116,10 +119,10 @@ async def predict_file(file: UploadFile = File(...)): #使用UploadFile类型接
     except Exception: #防止代码中出现未预料的错误导致服务器崩溃
         raise HTTPException(status_code=500, detail=str(Exception)) #将错误信息转为字符串并封装在500错误中返回，方便调试
 
-if __name__ == "__main__": #这是 Python 的标准入口判断。只有当这个文件被直接运行（而不是作为模块被导入）时，下面的代码才会执行
-    #启动 Uvicorn 服务器
-    #我们刚才不是实例化了一个app对象嘛，现在我们将app作为参数传给Uvicorn服务器，于是当服务器收到请求时，可以找到并调用对应的@app.post("/predict")修饰的函数
-    uvicorn.run(app, host="0.0.0.0", port=8000) #这句代码的意思就是让Uvicorn服务器加载app这个对象，并且在所有网卡（0.0.0.0）上监听 8000 端口，准备随时接收请求
+if __name__ == "__main__": #这是Python的标准入口判断。只有当这个文件被直接运行（而不是作为模块被导入）（即python server.py）时，下面的代码才会执行
+    #启动Uvicorn服务器
+    #我们刚才不是实例化了一个app对象嘛，现在我们将app作为参数传给Uvicorn服务器，于是当服务器收到请求时，可以找到并调用对应的有@app.post修饰的函数
+    uvicorn.run(app,host="0.0.0.0",port=8000) #这句代码的意思就是让Uvicorn服务器加载app这个对象，并且在所有网卡（0.0.0.0）上监听 8000 端口，随时接收请求
     #host="0.0.0.0"对应底层Socket编程中的INADDR_ANY宏，意思是监听本机“所有”网卡接口。也就是说允许外部网络访问本服务
     #一旦执行这句代码，主线程将进入一个无限循环，持续挂起以监听网络端口。也就是说这之后的代码都执行不了了，除非进程被信号终止
     #此时你还会发现 http://127.0.0.1:8000/docs 、 http://127.0.0.1:8000/redoc 可以打开。这是FastAPI框架自带的自动生成交互式API文档功能
