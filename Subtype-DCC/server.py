@@ -119,7 +119,7 @@ async def predict_file(file: UploadFile = File(...)): #使用UploadFile类型接
     except Exception: #防止代码中出现未预料的错误导致服务器崩溃
         raise HTTPException(status_code=500, detail=str(Exception)) #将错误信息转为字符串并封装在500错误中返回，方便调试
 
-if __name__ == "__main__": #这是Python的标准入口判断。只有当这个文件被直接运行（而不是作为模块被导入）（即python server.py）时，下面的代码才会执行
+if __name__=="__main__": #这是Python的标准入口判断。只有当这个文件被直接运行（而不是作为模块被导入）（即python server.py）时，下面的代码才会执行
     #启动Uvicorn服务器
     #我们刚才不是实例化了一个app对象嘛，现在我们将app作为参数传给Uvicorn服务器，于是当服务器收到请求时，可以找到并调用对应的有@app.post修饰的函数
     uvicorn.run(app,host="0.0.0.0",port=8000) #这句代码的意思就是让Uvicorn服务器加载app这个对象，并且在所有网卡（0.0.0.0）上监听 8000 端口，随时接收请求
