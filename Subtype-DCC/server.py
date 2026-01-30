@@ -6,7 +6,6 @@ from typing import List
 from inference import CancerSubtypePredictor
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
-import numpy as np
 import io
 
 #实例化FastAPI类，创建一个Web应用程序对象，它是整个后端服务的核心，负责路由分发和请求处理
